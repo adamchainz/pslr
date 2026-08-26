@@ -112,6 +112,7 @@ impl Prepared<'_> {
     }
 }
 
+/// Return the longest public suffix of *domain*, or None if it has none.
 #[pyfunction]
 #[pyo3(signature = (domain, *, accept_unknown=true, icann_only=false, keep_case=false))]
 fn publicsuffix(
@@ -129,6 +130,8 @@ fn publicsuffix(
     Some(tail_from(s, prepared.nlabels - publen).to_string())
 }
 
+/// Return the private suffix of *domain*: the public suffix plus one label.
+/// None if *domain* is entirely public, or invalid.
 #[pyfunction]
 #[pyo3(signature = (domain, *, accept_unknown=true, icann_only=false, keep_case=false))]
 fn privatesuffix(
@@ -146,6 +149,7 @@ fn privatesuffix(
     Some(tail_from(s, prepared.nlabels - (publen + 1)).to_string())
 }
 
+/// Return whether *domain* is entirely a public suffix.
 #[pyfunction]
 #[pyo3(signature = (domain, *, accept_unknown=true, icann_only=false))]
 fn is_public(domain: &str, accept_unknown: bool, icann_only: bool) -> bool {
@@ -155,6 +159,7 @@ fn is_public(domain: &str, accept_unknown: bool, icann_only: bool) -> bool {
     }
 }
 
+/// Return whether *domain* is a private suffix or a subdomain of one.
 #[pyfunction]
 #[pyo3(signature = (domain, *, accept_unknown=true, icann_only=false))]
 fn is_private(domain: &str, accept_unknown: bool, icann_only: bool) -> bool {
@@ -167,6 +172,8 @@ fn is_private(domain: &str, accept_unknown: bool, icann_only: bool) -> bool {
     }
 }
 
+/// Return a tuple of the subdomain labels of *domain* followed by its private
+/// suffix, or None if it has no private suffix.
 #[pyfunction]
 #[pyo3(signature = (domain, *, accept_unknown=true, icann_only=false, keep_case=false))]
 fn privateparts<'py>(
@@ -190,6 +197,9 @@ fn privateparts<'py>(
     Ok(Some(PyTuple::new(py, parts)?))
 }
 
+/// Return the suffix of *domain* reaching *depth* labels beyond its private
+/// suffix, or None if *domain* has too few labels. Depth 0 is the private
+/// suffix itself.
 #[pyfunction]
 #[pyo3(signature = (domain, depth, *, accept_unknown=true, icann_only=false, keep_case=false))]
 fn subdomain(

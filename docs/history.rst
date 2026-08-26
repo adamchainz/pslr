@@ -80,6 +80,8 @@ From ``scripts/benchmark.py`` on Python 3.11 (Linux, x86-64), against ``publicsu
 
 Memory use is also lower: importing and making one lookup peaks at about 8.0 MB of memory with pslr versus 12.3 MB with the ``publicsuffixlist`` package, against a 7.5 MB baseline interpreter.
 
+The API differences below were also checked against ``publicsuffixlist`` 1.0.2.20260726.
+
 Run the benchmarks yourself with `uv <https://docs.astral.sh/uv/>`__, which installs the latest releases of both packages into a temporary environment:
 
 .. code-block:: sh
@@ -104,5 +106,6 @@ pslr keeps the ``publicsuffixlist`` package's method names, data source, and loo
 * Domains are strings: the tuple-of-bytes API is gone.
 
 * Invalid domains consistently return :obj:`None` or :obj:`False`, where the ``publicsuffixlist`` package's ``subdomain()`` can raise :exc:`TypeError`.
+  (A negative ``depth`` for :func:`.subdomain` is a caller error, not an invalid domain, so it raises :exc:`OverflowError`.)
 
 * Strings must be well-formed Unicode: lone surrogates raise :exc:`UnicodeEncodeError`, rather than being carried through with ``surrogateescape``.

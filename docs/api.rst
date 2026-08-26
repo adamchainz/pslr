@@ -112,6 +112,7 @@ Splitting
 
    Return the suffix of *domain* reaching *depth* labels beyond its private suffix, or :obj:`None` if *domain* has too few labels.
    Depth 0 is the private suffix itself.
+   A negative *depth* raises :exc:`OverflowError`.
 
    .. code-block:: pycon
 
