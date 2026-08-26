@@ -37,7 +37,7 @@ dependencies = [
 
 [[package]]
 name = "pslr"
-version = "0.0.0"
+version = "1.0.0"
 dependencies = [
  "pyo3",
 ]
