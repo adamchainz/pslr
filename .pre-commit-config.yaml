@@ -25,7 +25,8 @@ repos:
   - id: typos
     exclude: |
       (?x)^(
-        src/data\.rs
+        scripts/public_suffix_list\.dat
+        |src/data\.rs
         |tests/data/test_psl\.txt
       )$
 - repo: https://github.com/tox-dev/pyproject-fmt

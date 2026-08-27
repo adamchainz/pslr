@@ -25,7 +25,7 @@ How it works
 
 ``scripts/generate_data.py`` downloads the list direct from its source at publicsuffix.org and compiles it into a static table (``src/data.rs``): a `trie <https://en.wikipedia.org/wiki/Trie>`__ over rule labels, walked right to left from the TLD, with exact, wildcard, and exception rules as node flags.
 Every internationalized rule is stored in both its Unicode and punycode forms, generated like the ``publicsuffixlist`` package does, so both kinds of domain match.
-The generated file is checked in, so a regular install or build downloads nothing.
+The downloaded list and the generated file are checked in, so a regular install or build downloads nothing.
 Updating the data is rerunning the script.
 
 Around that trie, pslr implements the ``publicsuffixlist`` package's handling of domains: lowercasing, ignoring one trailing dot, rejecting empty labels, and treating the parent domain of a wildcard rule as itself public, the interpretation required by the list's own linter.
