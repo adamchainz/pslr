@@ -15,6 +15,10 @@ internationalized rule generated with Python's "idna" codec, so that
 Unicode and punycode domains both match. Rules in the list's ICANN
 section also set a second group of trie flags, for icann_only lookups.
 
+Rules added or removed since the checked-in data.rs are noted in a
+changelog entry (docs/changelog.rst), under a "Pending" section that is
+created if not present.
+
 Run with:
 
     uv run scripts/generate_data.py
@@ -23,6 +27,7 @@ Run with:
 from __future__ import annotations
 
 import hashlib
+import re
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -42,14 +47,24 @@ ICANN_SHIFT = 3
 SCRIPTS_DIR = Path(__file__).parent
 RUST_SRC = SCRIPTS_DIR.parent / "src"
 TEST_DATA = SCRIPTS_DIR.parent / "tests" / "data" / "test_psl.txt"
+CHANGELOG = SCRIPTS_DIR.parent / "docs" / "changelog.rst"
 
 
 def main() -> None:
     print("Downloading and compiling the Public Suffix List...")
+    old_rules = read_current_rules()
     text = download(PSL_URL)
     rules = parse_rules(text)
     checksum = hashlib.sha256(text.encode()).hexdigest()
     write_data_rs(rules, checksum)
+
+    added = rules.keys() - old_rules
+    removed = old_rules - rules.keys()
+    update_changelog(added, removed)
+    if added or removed:
+        print(f"Changelog note added: {len(added)} new rules, {len(removed)} removed.")
+    else:
+        print("No rule changes.")
 
     test_data = download(TEST_PSL_URL)
     TEST_DATA.write_text(test_data, encoding="utf-8")
@@ -87,6 +102,51 @@ def parse_rules(text: str) -> dict[str, bool]:
         encoded_rule = "!" + encoded if rule.startswith("!") else encoded
         for variant in (rule, encoded_rule):
             rules[variant] = rules.get(variant, False) or in_icann
+    return rules
+
+
+def read_current_rules() -> set[str]:
+    """Reconstruct the rule set from the checked-in data.rs, by walking
+    its generated trie, so that a rerun can report added and removed
+    rules in the changelog.
+    """
+    content = (RUST_SRC / "data.rs").read_text(encoding="utf-8")
+
+    pool_match = re.search(r'pub static POOL: &str = "((?:[^"\\]|\\.)*)";', content)
+    assert pool_match
+    pool = re.sub(r"\\(.)", r"\1", pool_match.group(1)).encode()
+
+    nodes = [
+        (int(s), int(n), int(f))
+        for s, n, f in re.findall(
+            r"TrieNode\{edges_start:(\d+),n_edges:(\d+),flags:(\d+)\}", content
+        )
+    ]
+    assert nodes
+    edges_match = re.search(
+        r"pub static TRIE_EDGES: \[\(u32, u32, u32\); \d+\] = \[(.*?)\];", content
+    )
+    assert edges_match
+    edges = [
+        (pool[int(a) : int(b)].decode(), int(child))
+        for a, b, child in re.findall(r"\((\d+),(\d+),(\d+)\)", edges_match.group(1))
+    ]
+
+    rules: set[str] = set()
+    stack: list[tuple[int, list[str]]] = [(0, [])]
+    while stack:
+        node_idx, path = stack.pop()
+        edges_start, n_edges, flags = nodes[node_idx]
+        if path:
+            rule = ".".join(reversed(path))
+            if flags & EXACT:
+                rules.add(rule)
+            if flags & WILDCARD:
+                rules.add("*." + rule)
+            if flags & EXCEPTION:
+                rules.add("!" + rule)
+        for label, child_idx in edges[edges_start : edges_start + n_edges]:
+            stack.append((child_idx, path + [label]))
     return rules
 
 
@@ -208,6 +268,39 @@ def write_data_rs(rules: dict[str, bool], checksum: str) -> None:
         f"pool {len(pool.data.encode())} bytes, "
         f"{len(nodes)} trie nodes, {len(edges)} edges."
     )
+
+
+def update_changelog(added: set[str], removed: set[str]) -> None:
+    if not added and not removed:
+        return
+
+    entry_lines = ["* Update Public Suffix List data.", ""]
+    if added:
+        entry_lines += ["  New rules:", ""]
+        entry_lines += [f"  * ``{rule}``" for rule in sorted(added)]
+        entry_lines.append("")
+    if removed:
+        entry_lines += ["  Removed rules:", ""]
+        entry_lines += [f"  * ``{rule}``" for rule in sorted(removed)]
+        entry_lines.append("")
+    entry = "\n".join(entry_lines) + "\n"
+
+    content = CHANGELOG.read_text(encoding="utf-8")
+
+    pending_header = "Pending\n-------\n"
+    if pending_header not in content:
+        title_end = re.search(r"=========\nChangelog\n=========\n\n", content)
+        assert title_end
+        pos = title_end.end()
+        content = content[:pos] + pending_header + "\n" + content[pos:]
+
+    versioned = re.search(r"\n\d+\.\d+\.\d+ \(\d{4}-\d{2}-\d{2}\)\n", content)
+    assert versioned
+    content = (
+        content[: versioned.start() + 1] + entry + content[versioned.start() + 1 :]
+    )
+
+    CHANGELOG.write_text(content, encoding="utf-8")
 
 
 if __name__ == "__main__":
