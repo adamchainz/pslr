@@ -15,9 +15,9 @@ internationalized rule generated with Python's "idna" codec, so that
 Unicode and punycode domains both match. Rules in the list's ICANN
 section also set a second group of trie flags, for icann_only lookups.
 
-Rules added or removed since the checked-in data.rs are noted in a
-changelog entry (docs/changelog.rst), under a "Pending" section that is
-created if not present.
+Counts of rules added or removed since the checked-in data.rs are noted
+in a changelog entry (docs/changelog.rst), under a "Pending" section
+that is created if not present.
 
 Run with:
 
@@ -274,16 +274,15 @@ def update_changelog(added: set[str], removed: set[str]) -> None:
     if not added and not removed:
         return
 
-    entry_lines = ["* Update Public Suffix List data.", ""]
+    def count(n: int) -> str:
+        return "1 rule" if n == 1 else f"{n} rules"
+
+    counts = []
     if added:
-        entry_lines += ["  New rules:", ""]
-        entry_lines += [f"  * ``{rule}``" for rule in sorted(added)]
-        entry_lines.append("")
+        counts.append(f"{count(len(added))} added")
     if removed:
-        entry_lines += ["  Removed rules:", ""]
-        entry_lines += [f"  * ``{rule}``" for rule in sorted(removed)]
-        entry_lines.append("")
-    entry = "\n".join(entry_lines) + "\n"
+        counts.append(f"{count(len(removed))} removed")
+    entry = f"* Update Public Suffix List data: {', '.join(counts)}.\n\n"
 
     content = CHANGELOG.read_text(encoding="utf-8")
 
