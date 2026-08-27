@@ -5,8 +5,9 @@
 Generate the static Rust data table (src/data.rs) for pslr, by
 downloading the Public Suffix List direct from its source at
 publicsuffix.org and compiling it into a trie over domain labels.
-Also vendors the list's own test data (tests/data/test_psl.txt), direct
-from its source repository.
+The downloaded list is vendored (scripts/public_suffix_list.dat), as is
+the list's own test data (tests/data/test_psl.txt), direct from its
+source repository.
 
 Rules are parsed like the publicsuffixlist package
 (https://github.com/ko-zu/psl): lowercased, taking the first
@@ -15,9 +16,9 @@ internationalized rule generated with Python's "idna" codec, so that
 Unicode and punycode domains both match. Rules in the list's ICANN
 section also set a second group of trie flags, for icann_only lookups.
 
-Counts of rules added or removed since the checked-in data.rs are noted
-in a changelog entry (docs/changelog.rst), under a "Pending" section
-that is created if not present.
+Counts of rules added or removed since the vendored list are noted in a
+changelog entry (docs/changelog.rst), under a "Pending" section that is
+created if not present.
 
 Run with:
 
@@ -45,6 +46,7 @@ EXCEPTION = 4
 ICANN_SHIFT = 3
 
 SCRIPTS_DIR = Path(__file__).parent
+PSL_DATA = SCRIPTS_DIR / "public_suffix_list.dat"
 RUST_SRC = SCRIPTS_DIR.parent / "src"
 TEST_DATA = SCRIPTS_DIR.parent / "tests" / "data" / "test_psl.txt"
 CHANGELOG = SCRIPTS_DIR.parent / "docs" / "changelog.rst"
@@ -52,14 +54,15 @@ CHANGELOG = SCRIPTS_DIR.parent / "docs" / "changelog.rst"
 
 def main() -> None:
     print("Downloading and compiling the Public Suffix List...")
-    old_rules = read_current_rules()
+    old_rules = parse_rules(PSL_DATA.read_text(encoding="utf-8"))
     text = download(PSL_URL)
+    PSL_DATA.write_text(text, encoding="utf-8")
     rules = parse_rules(text)
     checksum = hashlib.sha256(text.encode()).hexdigest()
     write_data_rs(rules, checksum)
 
-    added = rules.keys() - old_rules
-    removed = old_rules - rules.keys()
+    added = rules.keys() - old_rules.keys()
+    removed = old_rules.keys() - rules.keys()
     update_changelog(added, removed)
     if added or removed:
         print(f"Changelog note added: {len(added)} new rules, {len(removed)} removed.")
@@ -102,51 +105,6 @@ def parse_rules(text: str) -> dict[str, bool]:
         encoded_rule = "!" + encoded if rule.startswith("!") else encoded
         for variant in (rule, encoded_rule):
             rules[variant] = rules.get(variant, False) or in_icann
-    return rules
-
-
-def read_current_rules() -> set[str]:
-    """Reconstruct the rule set from the checked-in data.rs, by walking
-    its generated trie, so that a rerun can report added and removed
-    rules in the changelog.
-    """
-    content = (RUST_SRC / "data.rs").read_text(encoding="utf-8")
-
-    pool_match = re.search(r'pub static POOL: &str = "((?:[^"\\]|\\.)*)";', content)
-    assert pool_match
-    pool = re.sub(r"\\(.)", r"\1", pool_match.group(1)).encode()
-
-    nodes = [
-        (int(s), int(n), int(f))
-        for s, n, f in re.findall(
-            r"TrieNode\{edges_start:(\d+),n_edges:(\d+),flags:(\d+)\}", content
-        )
-    ]
-    assert nodes
-    edges_match = re.search(
-        r"pub static TRIE_EDGES: \[\(u32, u32, u32\); \d+\] = \[(.*?)\];", content
-    )
-    assert edges_match
-    edges = [
-        (pool[int(a) : int(b)].decode(), int(child))
-        for a, b, child in re.findall(r"\((\d+),(\d+),(\d+)\)", edges_match.group(1))
-    ]
-
-    rules: set[str] = set()
-    stack: list[tuple[int, list[str]]] = [(0, [])]
-    while stack:
-        node_idx, path = stack.pop()
-        edges_start, n_edges, flags = nodes[node_idx]
-        if path:
-            rule = ".".join(reversed(path))
-            if flags & EXACT:
-                rules.add(rule)
-            if flags & WILDCARD:
-                rules.add("*." + rule)
-            if flags & EXCEPTION:
-                rules.add("!" + rule)
-        for label, child_idx in edges[edges_start : edges_start + n_edges]:
-            stack.append((child_idx, path + [label]))
     return rules
 
 
