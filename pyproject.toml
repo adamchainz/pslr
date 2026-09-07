@@ -125,27 +125,27 @@ overrides = [
     # The tests intentionally pass some badly-typed and extra values
     "arg-type",
     "call-arg",
-  ], allow_untyped_defs = true, allow_untyped_calls = true },
+  ], allow_untyped_calls = true, allow_untyped_defs = true },
 ]
 
 [tool.pytest]
 strict = true
 
 [tool.coverage]
-run.branch = true
-run.data_file = ".coverage/cov"
-run.parallel = true
 run.source = [
   "pslr",
   "tests",
 ]
+run.branch = true
+run.data_file = ".coverage/cov"
+run.parallel = true
 paths.source = [
   "src",
   ".tox/**/site-packages",
 ]
-report.show_missing = true
 report.skip_covered = true
 report.skip_empty = true
+report.show_missing = true
 
 [tool.rstcheck]
 report_level = "ERROR"
