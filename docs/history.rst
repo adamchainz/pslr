@@ -105,7 +105,19 @@ pslr keeps the ``publicsuffixlist`` package's method names, data source, and loo
 
 * Domains are strings: the tuple-of-bytes API is gone.
 
-* Invalid domains consistently return :obj:`None` or :obj:`False`, where the ``publicsuffixlist`` package's ``subdomain()`` can raise :exc:`TypeError`.
-  (A negative ``depth`` for :func:`.subdomain` is a caller error, not an invalid domain, so it raises :exc:`OverflowError`.)
+* Invalid domains consistently return |None|__ or |False|__, where the ``publicsuffixlist`` package's ``subdomain()`` can raise |TypeError|__.
+  (A negative ``depth`` for :func:`.subdomain` is a caller error, not an invalid domain, so it raises |OverflowError|__.)
 
-* Strings must be well-formed Unicode: lone surrogates raise :exc:`UnicodeEncodeError`, rather than being carried through with ``surrogateescape``.
+  .. |None| replace:: ``None``
+  __ https://docs.python.org/3/library/constants.html#None
+  .. |False| replace:: ``False``
+  __ https://docs.python.org/3/library/constants.html#False
+  .. |TypeError| replace:: ``TypeError``
+  __ https://docs.python.org/3/library/exceptions.html#TypeError
+  .. |OverflowError| replace:: ``OverflowError``
+  __ https://docs.python.org/3/library/exceptions.html#OverflowError
+
+* Strings must be well-formed Unicode: lone surrogates raise |UnicodeEncodeError|__, rather than being carried through with ``surrogateescape``.
+
+  .. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``
+  __ https://docs.python.org/3/library/exceptions.html#UnicodeEncodeError
