@@ -108,17 +108,16 @@ pslr keeps the ``publicsuffixlist`` package's method names, data source, and loo
 * Invalid domains consistently return |None|__ or |False|__, where the ``publicsuffixlist`` package's ``subdomain()`` can raise |TypeError|__.
   (A negative ``depth`` for :func:`.subdomain` is a caller error, not an invalid domain, so it raises |OverflowError|__.)
 
+  .. |None| replace:: ``None``
   __ https://docs.python.org/3/library/constants.html#None
+  .. |False| replace:: ``False``
   __ https://docs.python.org/3/library/constants.html#False
+  .. |TypeError| replace:: ``TypeError``
   __ https://docs.python.org/3/library/exceptions.html#TypeError
+  .. |OverflowError| replace:: ``OverflowError``
   __ https://docs.python.org/3/library/exceptions.html#OverflowError
 
 * Strings must be well-formed Unicode: lone surrogates raise |UnicodeEncodeError|__, rather than being carried through with ``surrogateescape``.
 
+  .. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``
   __ https://docs.python.org/3/library/exceptions.html#UnicodeEncodeError
-
-.. |None| replace:: ``None``
-.. |False| replace:: ``False``
-.. |TypeError| replace:: ``TypeError``
-.. |OverflowError| replace:: ``OverflowError``
-.. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``

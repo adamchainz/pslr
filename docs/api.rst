@@ -15,7 +15,9 @@ Results are lowercase, preserving the input's Unicode or punycode form.
 Pass ``keep_case=True`` to preserve the input's case too.
 A domain containing empty labels, like ``a..com`` or ``.com``, is invalid: lookups return |None|__ and checks return |False|__.
 
+.. |None| replace:: ``None``
 __ https://docs.python.org/3/library/constants.html#None
+.. |False| replace:: ``False``
 __ https://docs.python.org/3/library/constants.html#False
 
 By default, an unknown top-level domain counts as a public suffix, matching the list's implicit ``*`` rule for new or private TLDs.
@@ -27,6 +29,7 @@ Pass ``icann_only=True`` to match only registry-defined suffixes.
 
 Strings must be well-formed Unicode: lone surrogates raise |UnicodeEncodeError|__.
 
+.. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``
 __ https://docs.python.org/3/library/exceptions.html#UnicodeEncodeError
 
 Lookup
@@ -126,6 +129,7 @@ Splitting
    A negative *depth* raises |OverflowError|__.
 
    __ https://docs.python.org/3/library/constants.html#None
+   .. |OverflowError| replace:: ``OverflowError``
    __ https://docs.python.org/3/library/exceptions.html#OverflowError
 
    .. code-block:: pycon
@@ -148,8 +152,3 @@ Data
 
        >>> pslr.LIST_CHECKSUM
        'fe6adc7fb8014f57d28d69b18d0aa3e581efb432544922e12131a5d4a87bd954'
-
-.. |None| replace:: ``None``
-.. |False| replace:: ``False``
-.. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``
-.. |OverflowError| replace:: ``OverflowError``
