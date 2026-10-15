@@ -13,12 +13,7 @@ The **private suffix**, also known as the registrable domain, eTLD+1, or apex do
 Domains are matched case-insensitively, one trailing dot is ignored, and internationalized domain names are matched in both Unicode (``食狮.中国``) and punycode (``xn--85x722f.xn--fiqs8s``) forms.
 Results are lowercase, preserving the input's Unicode or punycode form.
 Pass ``keep_case=True`` to preserve the input's case too.
-A domain containing empty labels, like ``a..com`` or ``.com``, is invalid: lookups return |None|__ and checks return |False|__.
-
-.. |None| replace:: ``None``
-__ https://docs.python.org/3/library/constants.html#None
-.. |False| replace:: ``False``
-__ https://docs.python.org/3/library/constants.html#False
+A domain containing empty labels, like ``a..com`` or ``.com``, is invalid: lookups return :obj:`None` and checks return :obj:`False`.
 
 By default, an unknown top-level domain counts as a public suffix, matching the list's implicit ``*`` rule for new or private TLDs.
 Pass ``accept_unknown=False`` to treat unknown TLDs as no match instead.
@@ -27,19 +22,14 @@ The list has two sections: ICANN suffixes, delegated by domain registries, and p
 Both match by default.
 Pass ``icann_only=True`` to match only registry-defined suffixes.
 
-Strings must be well-formed Unicode: lone surrogates raise |UnicodeEncodeError|__.
-
-.. |UnicodeEncodeError| replace:: ``UnicodeEncodeError``
-__ https://docs.python.org/3/library/exceptions.html#UnicodeEncodeError
+Strings must be well-formed Unicode: lone surrogates raise :exc:`UnicodeEncodeError`.
 
 Lookup
 ------
 
 .. function:: publicsuffix(domain: str, *, accept_unknown: bool = True, icann_only: bool = False, keep_case: bool = False) -> str | None
 
-   Return the longest public suffix of *domain*, or |None|__ if it has none.
-
-   __ https://docs.python.org/3/library/constants.html#None
+   Return the longest public suffix of *domain*, or :obj:`None` if it has none.
 
    .. code-block:: pycon
 
@@ -70,9 +60,7 @@ Lookup
 .. function:: privatesuffix(domain: str, *, accept_unknown: bool = True, icann_only: bool = False, keep_case: bool = False) -> str | None
 
    Return the private suffix of *domain*: the shortest suffix assigned to a registrant, one label beyond the public suffix.
-   Returns |None|__ if *domain* is entirely public, or invalid.
-
-   __ https://docs.python.org/3/library/constants.html#None
+   Returns :obj:`None` if *domain* is entirely public, or invalid.
 
    .. code-block:: pycon
 
@@ -111,9 +99,7 @@ Splitting
 
 .. function:: privateparts(domain: str, *, accept_unknown: bool = True, icann_only: bool = False, keep_case: bool = False) -> tuple[str, ...] | None
 
-   Return a tuple of the subdomain labels of *domain* followed by its private suffix, or |None|__ if it has no private suffix.
-
-   __ https://docs.python.org/3/library/constants.html#None
+   Return a tuple of the subdomain labels of *domain* followed by its private suffix, or :obj:`None` if it has no private suffix.
 
    .. code-block:: pycon
 
@@ -124,13 +110,9 @@ Splitting
 
 .. function:: subdomain(domain: str, depth: int, *, accept_unknown: bool = True, icann_only: bool = False, keep_case: bool = False) -> str | None
 
-   Return the suffix of *domain* reaching *depth* labels beyond its private suffix, or |None|__ if *domain* has too few labels.
+   Return the suffix of *domain* reaching *depth* labels beyond its private suffix, or :obj:`None` if *domain* has too few labels.
    Depth 0 is the private suffix itself.
-   A negative *depth* raises |OverflowError|__.
-
-   __ https://docs.python.org/3/library/constants.html#None
-   .. |OverflowError| replace:: ``OverflowError``
-   __ https://docs.python.org/3/library/exceptions.html#OverflowError
+   A negative *depth* raises :exc:`OverflowError`.
 
    .. code-block:: pycon
 
